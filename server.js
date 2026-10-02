@@ -1,8 +1,31 @@
-const express = require('experss');
-const app = express();
+const express = require('express');
+const fs = require('fs/promises');
 const path = require('path');
-const filepath = path.join(__dirname, "./data.json");
+const app = express();
+const port = 3000;                   
 
-app.get('/products', (req, res)=>){
-    const data = fstat.readFileSync(filepath, 'utf-8')
+const pathToFile = path.join(__dirname, 'data.json');
+
+async function readData(){
+    try {
+        let data = await fs.readFile(pathToFile,'utf-8');
+        return JSON.parse(data);
+    } catch (err){
+        console.log(err);
+    }           
 }
+
+app.get('/products', async(req, res) => {
+    try{
+        let products = await readData();
+        console.log(products);
+        res.json(products);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to read products' });
+    }
+});
+
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`);
+});
