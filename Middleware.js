@@ -17,3 +17,14 @@ function cacheMiddleware(req, res, next) {
 
     next();
 }
+function clearCache() {
+    Object.keys(cache).forEach(key => {
+        delete cache[key];
+    });
+}
+
+module.exports = {
+    cache,
+    cacheMiddleware,
+    clearCache
+};
