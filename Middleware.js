@@ -1,14 +1,26 @@
 const cache = {};
 
+const CACHE_TTL = 60 * 1000;
+
 function cacheMiddleware(req, res, next) {
     const key = req.originalUrl;
 
-    if (cache[key]) {
-        console.log("Serving from cache");
+    const cachedData = cache[key];
 
-        res.setHeader('X-Cache', 'HIT');
+    if (cachedData) {
+        const age = Date.now() - cachedData.createdAt;
 
-        return res.json(cache[key].data);
+        if (age < CACHE_TTL) {
+            console.log("Serving from cache");
+
+            res.setHeader('X-Cache', 'HIT');
+
+            return res.json(cachedData.data);
+        }
+
+        console.log("Cache expired");
+
+        delete cache[key];
     }
 
     console.log("Cache miss");
@@ -17,14 +29,8 @@ function cacheMiddleware(req, res, next) {
 
     next();
 }
-function clearCache() {
-    Object.keys(cache).forEach(key => {
-        delete cache[key];
-    });
-}
 
 module.exports = {
     cache,
-    cacheMiddleware,
-    clearCache
+    cacheMiddleware
 };
