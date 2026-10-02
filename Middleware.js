@@ -6,10 +6,14 @@ function cacheMiddleware(req, res, next) {
     if (cache[key]) {
         console.log("Serving from cache");
 
+        res.setHeader('X-Cache', 'HIT');
+
         return res.json(cache[key].data);
     }
 
     console.log("Cache miss");
+
+    res.setHeader('X-Cache', 'MISS');
 
     next();
 }
