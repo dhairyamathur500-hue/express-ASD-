@@ -17,8 +17,3 @@ function cacheMiddleware(req, res, next) {
 
     next();
 }
-
-module.exports = {
-    cache,
-    cacheMiddleware
-};
