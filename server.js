@@ -1,17 +1,62 @@
-app.get('/products/:id', async (req, res) => {
+const express = require('express');
+const fs = require('fs/promises');
+const path = require('path');
+
+const app = express();
+const port = 3000;
+
+const cache = {};
+const pathToFile = path.join(__dirname, 'db.json');
+
+async function readFile() {
     try {
-        const { id } = req.params;
+        let data = await fs.readFile(pathToFile, "utf-8");
+        return JSON.parse(data);
+    } catch (err) {
+        console.log(err);
+    }
+}
 
-        // Unique cache key for each product
-        const key = req.url;
+async function readFilewithDelay() {
+    await new Promise((resolve) => {
+        setTimeout(resolve, 1500);
+    });
 
-        // Check cache
+    let p = await readFile();
+    return p;
+}
+
+app.get('/products', async (req, res) => {
+    try {
+        let key = req.url;
+
         if (cache[key]) {
             console.log("Serving from cache");
             return res.json(cache[key]);
         }
 
-        console.log("Reading from file...");
+        let products = await readFilewithDelay();
+
+        cache[key] = products;
+
+        return res.json(products);
+
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+app.get('/products/:id', async (req, res) => {
+    try {
+        let key = req.url;
+
+        if (cache[key]) {
+            console.log("Serving from cache");
+            return res.json(cache[key]);
+        }
+
+        const { id } = req.params;
 
         // Read file with 1.5 second delay
         const products = await readFilewithDelay();
@@ -26,10 +71,9 @@ app.get('/products/:id', async (req, res) => {
             });
         }
 
-        // Store product in cache
         cache[key] = { product };
 
-        return res.json({ product });
+        return res.status(200).json({ product });
 
     } catch (err) {
         console.log(err);
@@ -37,4 +81,8 @@ app.get('/products/:id', async (req, res) => {
             message: "Internal server error"
         });
     }
+});
+
+app.listen(port, () => {
+    console.log(`Server is running on http://localhost:${port}`);
 });
