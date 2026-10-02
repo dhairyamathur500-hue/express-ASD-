@@ -8,7 +8,7 @@ const {
     cache,
     cacheMiddleware,
     clearCache
-} = require('./Middleware');
+} = require('../middleware/Middleware');
 
 
 router.get(
